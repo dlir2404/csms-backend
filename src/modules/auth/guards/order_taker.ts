@@ -5,7 +5,7 @@ import { Request } from 'express';
 import { UserRole } from "src/shared/enums/user";
 
 @Injectable()
-export class AdminGuard implements CanActivate {
+export class OrderTakerGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
         private readonly configService: ConfigService
@@ -27,8 +27,8 @@ export class AdminGuard implements CanActivate {
               }
             );
 
-            if (payload.role !== UserRole.ADMIN){
-              throw new UnauthorizedException('User not admin')
+            if (payload.role !== UserRole.ORDER_TAKER){
+              throw new ForbiddenException('User not normal user')
             }
 
             request['user'] = payload;

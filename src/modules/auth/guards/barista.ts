@@ -5,7 +5,7 @@ import { Request } from 'express';
 import { UserRole } from "src/shared/enums/user";
 
 @Injectable()
-export class UserGuard implements CanActivate {
+export class BaristaGuard implements CanActivate {
     constructor(
         private jwtService: JwtService,
         private readonly configService: ConfigService
@@ -27,7 +27,7 @@ export class UserGuard implements CanActivate {
               }
             );
 
-            if (payload.role !== UserRole.NORMAL_USER){
+            if (payload.role !== UserRole.BARISTA){
               throw new ForbiddenException('User not normal user')
             }
 

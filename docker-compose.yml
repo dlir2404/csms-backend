@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 12345678
-      MYSQL_DATABASE: base-db
+      MYSQL_DATABASE: csms-db
     volumes:
       - db_data:/var/lib/mysql
     ports:

@@ -13,12 +13,12 @@ export class AuthService {
         private readonly userService: UserService
     ) {};
 
-    async register(body: RegisterRequest) {
-        return this.userService.createUser({...body, role: UserRole.NORMAL_USER});
-    }
+    // async register(body: RegisterRequest) {
+    //     return this.userService.createUser({...body, role: UserRole.NORMAL_USER});
+    // }
 
     async login({username, password}: LoginRequest) {
-        const user = await User.findOne({ where: { username: username, role: UserRole.NORMAL_USER }});
+        const user = await User.findOne({ where: { username: username }});
 
         if (!user){
             throw new NotFoundException('User not found')
@@ -36,6 +36,6 @@ export class AuthService {
     }
 
     async getMe(userId: number) {
-        return User.findOne({ where: { id: userId, role: UserRole.NORMAL_USER }, raw: true})
+        return User.findOne({ where: { id: userId }, raw: true})
     }
 }

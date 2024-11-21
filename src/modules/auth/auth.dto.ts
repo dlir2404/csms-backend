@@ -35,5 +35,12 @@ export class RegisterRequest {
     })
     @IsString()
     @IsNotEmpty()
+    fullName: string;
+
+    @ApiProperty({
+        type: String
+    })
+    @IsString()
+    @IsNotEmpty()
     password: string;
 }

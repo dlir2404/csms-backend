@@ -9,8 +9,8 @@ async function bootstrap() {
   app.enableCors();
 
   const config = new DocumentBuilder()
-    .setTitle('Base backend')
-    .setDescription('The base API description')
+    .setTitle('CSMS backend')
+    .setDescription('The csms API description')
     .addBearerAuth()
     .setVersion('1.0')
     .build();

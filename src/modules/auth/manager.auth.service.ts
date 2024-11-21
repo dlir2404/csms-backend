@@ -7,21 +7,21 @@ import * as bcrypt from 'bcrypt';
 import { UserService } from "../user/user.service";
 
 @Injectable()
-export class AdminAuthService {
+export class ManagerAuthService {
     constructor(
         private readonly jwtService: JwtService,
         private readonly userService: UserService
     ) {};
 
     async register(body: RegisterRequest) {
-        return this.userService.createUser({...body, role: UserRole.ADMIN});
+        return this.userService.createUser({...body, role: UserRole.MANAGER});
     }
 
     async login({username, password}: LoginRequest) {
-        const user = await User.findOne({ where: { username: username, role: UserRole.ADMIN }});
+        const user = await User.findOne({ where: { username: username, role: UserRole.MANAGER }});
 
         if (!user){
-            throw new NotFoundException('Admin not found')
+            throw new NotFoundException('Manager not found')
         }
 
         const isMatch = await bcrypt.compare(password, user.password)
@@ -36,6 +36,6 @@ export class AdminAuthService {
     }
 
     async getMe(userId: number) {
-        return User.findOne({ where: { id: userId, role: UserRole.ADMIN }, raw: true})
+        return User.findOne({ where: { id: userId, role: UserRole.MANAGER }, raw: true})
     }
 }

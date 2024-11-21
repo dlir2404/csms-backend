@@ -1,8 +1,9 @@
 import { applyDecorators, BadRequestException, createParamDecorator, ExecutionContext, SetMetadata, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import { UserRole } from "../enums/user";
-import { AdminGuard } from "src/modules/auth/guards/admin";
-import { UserGuard } from "src/modules/auth/guards/normal_user";
+import { ManagerGuard } from "src/modules/auth/guards/manager";
+import { OrderTakerGuard } from "src/modules/auth/guards/order_taker";
+import { BaristaGuard } from "src/modules/auth/guards/barista";
 import { RolesGuard } from "src/modules/auth/guards/role";
 
 export const User = createParamDecorator(
@@ -24,17 +25,25 @@ export const CurrentUserId = createParamDecorator(
     },
 );
 
-export function AdminAuth() {
+export function ManagerAuth() {
     return applyDecorators(
-        UseGuards(AdminGuard),
+        UseGuards(ManagerGuard),
         ApiBearerAuth(),
         ApiUnauthorizedResponse({ description: 'Unauthorized' }),
     );
 }
 
-export function UserAuth() {
+export function OrderTakerAuth() {
     return applyDecorators(
-        UseGuards(UserGuard),
+        UseGuards(OrderTakerAuth),
+        ApiBearerAuth(),
+        ApiUnauthorizedResponse({ description: 'Unauthorized' }),
+    );
+}
+
+export function BaristaAuth() {
+    return applyDecorators(
+        UseGuards(BaristaGuard),
         ApiBearerAuth(),
         ApiUnauthorizedResponse({ description: 'Unauthorized' }),
     );

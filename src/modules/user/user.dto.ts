@@ -17,6 +17,13 @@ export class CreateUserRequest {
     })
     @IsString()
     @IsNotEmpty()
+    fullName: string;
+
+    @ApiProperty({
+        type: String
+    })
+    @IsString()
+    @IsNotEmpty()
     password: string;
 
     @ApiProperty({
@@ -31,6 +38,9 @@ export class CreateUserRequest {
 export class UserResponse {
     @ApiProperty()
     username: string;
+
+    @ApiProperty()
+    fullName: string;
 
     @ApiProperty()
     role: UserRole;

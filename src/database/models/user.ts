@@ -8,12 +8,14 @@ export class User extends Model {
     username: string
 
     @Column
+    fullName: string
+
+    @Column
     @Exclude()
     password: string
 
     @Column({
         type: DataType.ENUM(...Object.values(UserRole)),
-        defaultValue: UserRole.NORMAL_USER,
     })
     role: UserRole
 }
