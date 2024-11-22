@@ -34,6 +34,29 @@ export class CreateUserRequest {
     role: UserRole
 }
 
+export class EditUserRequest {
+    @ApiProperty({
+        type: String
+    })
+    @IsString()
+    @IsNotEmpty()
+    username: string;
+
+    @ApiProperty({
+        type: String
+    })
+    @IsString()
+    @IsNotEmpty()
+    fullName: string;
+
+    @ApiProperty({
+        enum: UserRole
+    })
+    @IsString()
+    @IsNotEmpty()
+    role: UserRole
+}
+
 @Expose()
 export class UserResponse {
     @ApiProperty()

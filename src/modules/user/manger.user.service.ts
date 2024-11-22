@@ -1,12 +1,10 @@
-import { Injectable } from "@nestjs/common";
-import { GetListUsersRequest } from "./user.dto";
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { EditUserRequest, GetListUsersRequest } from "./user.dto";
 import { User } from "src/database/models";
-import { Op, WhereOptions } from "sequelize";
+import { Op, where, WhereOptions } from "sequelize";
 
 @Injectable()
-export class AdminUserService {
-    constructor() {}
-
+export class ManagerUserService {
     async getListUsers(params: GetListUsersRequest) {
         const where: WhereOptions<User> = {}
 
@@ -39,5 +37,27 @@ export class AdminUserService {
             count,
             rows
         }
+    }
+
+    async updateUser(id: number, body: EditUserRequest) {
+        const user = await User.findOne({ where: {id: id}});
+
+        if (!user) throw new NotFoundException('User not exists')
+
+        await user.update({
+            username: body.username,
+            fullName: body.fullName,
+            role: body.role,
+        });
+
+        return { result: true }
+    }
+
+    async deleteUser(id: number) {
+        const user = await User.findOne({ where: {id: id}});
+
+        if (!user) throw new NotFoundException('User not exists')
+
+        return { result: true }
     }
 }
