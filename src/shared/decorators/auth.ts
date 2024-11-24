@@ -35,7 +35,7 @@ export function ManagerAuth() {
 
 export function OrderTakerAuth() {
     return applyDecorators(
-        UseGuards(OrderTakerAuth),
+        UseGuards(OrderTakerGuard),
         ApiBearerAuth(),
         ApiUnauthorizedResponse({ description: 'Unauthorized' }),
     );
