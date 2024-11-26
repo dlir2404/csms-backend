@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
-import { ApiTags } from "@nestjs/swagger";
+import { ApiResponse, ApiTags } from "@nestjs/swagger";
 import { OrderService } from "./order.service";
-import { CreateOrderRequest, GetListOrderRequest, ListOrderResponse, UpdateStatusRequest } from "./order.dto";
+import { CreateOrderRequest, GetCreatedByStatisticRequest, GetDailyStatisticRequest, GetListOrderRequest, GetMonthlyStatisticRequest, GetProcessedByStatisticRequest, ListOrderResponse, UpdateStatusRequest } from "./order.dto";
 import { AuthRequired, CurrentUserId, OrderTakerAuth } from "src/shared/decorators/auth";
 import { UserRole } from "src/shared/enums/user";
 import { plainToInstance } from "class-transformer";
@@ -31,5 +31,25 @@ export class OrderController {
     async updateOrderStatus(@CurrentUserId() userId: number, @Body() body: UpdateStatusRequest, @Param('id') orderId: number) {
         const result = await this.orderService.updateStatus(userId, orderId, body)
         return plainToInstance(BaseResponse, result)
+    }
+
+    @Get('/statistic/day')
+    async getDailyStatistic(@Query() query: GetDailyStatisticRequest) {
+        return this.orderService.countOrdersByDay(query.month, query.year)
+    }
+
+    @Get('/statistic/month')
+    async getMonthlyStatistic(@Query() query: GetMonthlyStatisticRequest) {
+        return this.orderService.countOrdersByMonth(query.year)
+    }
+
+    @Get('/statistic/created-by')
+    async getCreatedByStatistic(@Query() query: GetCreatedByStatisticRequest) {
+        return await this.orderService.getCreatedByStatistic(query)
+    }
+
+    @Get('/statistic/processed-by')
+    async getProcessedByStatistic(@Query() query: GetProcessedByStatisticRequest) {
+        return await this.orderService.getProcessedByStatistic(query)
     }
 }

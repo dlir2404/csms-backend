@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { CreateOrderRequest, GetListOrderRequest, UpdateStatusRequest } from "./order.dto";
+import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { CreateOrderRequest, GetCreatedByStatisticRequest, GetListOrderRequest, GetProcessedByStatisticRequest, UpdateStatusRequest } from "./order.dto";
 import { Order, OrderProduct, Product, User } from "src/database/models";
 import { OrderStatus } from "src/shared/enums/order";
-import { Op, WhereOptions } from "sequelize";
+import { Op, Sequelize, WhereOptions } from "sequelize";
 
 @Injectable()
 export class OrderService {
@@ -129,5 +129,162 @@ export class OrderService {
         await order.save();
 
         return { result: true }
+    }
+
+    async countOrdersByDay(month: number, year: number) {
+        try {
+            // Calculate the total number of days in the given month
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            // Generate all days of the month in "YYYY-MM-DD" format
+            const days = Array.from({ length: daysInMonth }, (_, i) => {
+                const day = (i + 1).toString().padStart(2, '0');
+                return `${year}-${month.toString().padStart(2, '0')}-${day}`;
+            });
+
+            // Start and end dates for the query
+            const startDate = new Date(year, month - 1, 1); // First day of the month
+            const endDate = new Date(year, month, 0);      // Last day of the month
+
+            // Query to get order counts by day
+            const result = await Order.findAll({
+                attributes: [
+                    [Sequelize.fn('DATE', Sequelize.col('createdAt')), 'day'],
+                    [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+                ],
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
+                group: [Sequelize.fn('DATE', Sequelize.col('createdAt'))],
+                order: [[Sequelize.fn('DATE', Sequelize.col('createdAt')), 'ASC']],
+            });
+
+            // Convert query result to an object for easy lookup
+            const resultMap = result.reduce((map, item) => {
+                map[item.dataValues.day] = parseInt(item.dataValues.count, 10);
+                return map;
+            }, {});
+
+            // Merge query results with all days
+            const finalResult = days.map(day => ({
+                day: day,
+                count: resultMap[day] || 0,
+            }));
+
+            return finalResult;
+        } catch (error) {
+            console.error('Error counting orders by day:', error);
+            throw new InternalServerErrorException('Error when counting orders by day');
+        }
+    }
+
+    async countOrdersByMonth(year: number) {
+        try {
+            // Generate all months of the year in "YYYY-MM" format
+            const months = Array.from({ length: 12 }, (_, i) => {
+                const month = (i + 1).toString().padStart(2, '0');
+                return `${year}-${month}`;
+            });
+
+            // Start and end dates of the year
+            const startDate = new Date(year, 0, 1);
+            const endDate = new Date(year + 1, 0, 0);
+
+            // Query to get order counts by month
+            const result = await Order.findAll({
+                attributes: [
+                    [Sequelize.fn('DATE_FORMAT', Sequelize.col('createdAt'), '%Y-%m'), 'month'],
+                    [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+                ],
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate],
+                    },
+                },
+                group: [Sequelize.fn('DATE_FORMAT', Sequelize.col('createdAt'), '%Y-%m')],
+                order: [[Sequelize.fn('DATE_FORMAT', Sequelize.col('createdAt'), '%Y-%m'), 'ASC']],
+            });
+
+            // Convert query result to an object for easy lookup
+            const resultMap = result.reduce((map, item) => {
+                map[item.dataValues.month] = parseInt(item.dataValues.count, 10);
+                return map;
+            }, {});
+
+            // Merge result with all months
+            const finalResult = months.map(month => ({
+                month: month,
+                count: resultMap[month] || 0,
+            }));
+
+            return finalResult;
+        } catch (error) {
+            console.error('Error counting orders by month:', error);
+            throw new InternalServerErrorException('Error when counting orders by month');
+        }
+    }
+
+    async getCreatedByStatistic(params: GetCreatedByStatisticRequest) {
+        const where: WhereOptions<Order> = {}
+
+        if (params.from || params.to) {
+            where.createdAt = {};
+            if (params.from) {
+                where.createdAt[Op.gte] = new Date(params.from);
+            }
+            if (params.to) {
+                where.createdAt[Op.lte] = new Date(params.to);
+            }
+        }
+
+        const result = await Order.findAll({
+            attributes: [
+                [Sequelize.literal('COUNT(`Order`.`id`)'), 'count'],
+            ],
+            include: [{
+                model: User,
+                attributes: ['id', 'username', 'fullName'],
+                as: 'createdBy'
+            }],
+            where: where,
+            group: 'createdById',
+            raw: true,
+            nest: true,
+        })
+
+        return result;
+    }
+
+    async getProcessedByStatistic(params: GetProcessedByStatisticRequest) {
+        const where: WhereOptions<Order> = {}
+
+        if (params.from || params.to) {
+            where.createdAt = {};
+            if (params.from) {
+                where.createdAt[Op.gte] = new Date(params.from);
+            }
+            if (params.to) {
+                where.createdAt[Op.lte] = new Date(params.to);
+            }
+        }
+
+        const result = await Order.findAll({
+            attributes: [
+                [Sequelize.literal('COUNT(`Order`.`id`)'), 'count'],
+            ],
+            include: [{
+                model: User,
+                attributes: ['id', 'username', 'fullName'],
+                as: 'processBy'
+            }],
+            where: where,
+            group: 'processById',
+            raw: true,
+            nest: true,
+        })
+
+        return result;
     }
 }

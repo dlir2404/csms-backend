@@ -3,7 +3,7 @@ import { Exclude, Expose, Type } from "class-transformer";
 import { IsArray, IsDefined, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { OrderStatus } from "src/shared/enums/order";
 import { UserRole } from "src/shared/enums/user";
-import { DateAndPaginationType } from "src/shared/types/base";
+import { DateAndPaginationType, DateType } from "src/shared/types/base";
 import { UserResponse } from "../user/user.dto";
 
 export class OrderProduct {
@@ -150,4 +150,34 @@ export class OrderDTO {
     products: ProductInOrderDTO[];
     createdBy: UserResponse;
     processBy: UserResponse;
+}
+
+export class GetDailyStatisticRequest {
+    @ApiProperty()
+    @IsNumber()
+    @IsDefined()
+    @Type(() => Number)
+    month: number;
+
+    @ApiProperty()
+    @IsNumber()
+    @IsDefined()
+    @Type(() => Number)
+    year: number;
+}
+
+export class GetMonthlyStatisticRequest {
+    @ApiProperty()
+    @IsNumber()
+    @IsDefined()
+    @Type(() => Number)
+    year: number;
+}
+
+export class GetCreatedByStatisticRequest extends DateType {
+
+}
+
+export class GetProcessedByStatisticRequest extends DateType {
+
 }
