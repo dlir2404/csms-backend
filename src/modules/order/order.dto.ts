@@ -181,3 +181,48 @@ export class GetCreatedByStatisticRequest extends DateType {
 export class GetProcessedByStatisticRequest extends DateType {
 
 }
+
+export class OverviewReport {
+    @ApiProperty()
+    totalOrder: number;
+
+    @ApiProperty()
+    totalOrderValue: number;
+
+    @ApiProperty()
+    avgOrderValue: number;
+
+    @ApiProperty()
+    totalItems: number;
+}
+
+export class OverViewStatus {
+    @ApiProperty()
+    status: string;
+
+    @ApiProperty()
+    count: number;
+}
+
+export class OverviewResponse {
+    @ApiProperty({
+        type: OverviewReport,
+        isArray: true
+    })
+    @Type(() => OverviewReport)
+    today: OverviewReport;
+
+    @ApiProperty({
+        type: OverviewReport,
+        isArray: true
+    })
+    @Type(() => OverviewReport)
+    yesterday: OverviewReport;
+
+    @ApiProperty({
+        type: OverViewStatus,
+        isArray: true
+    })
+    @Type(() => OverViewStatus)
+    statuses: OverViewStatus[]
+}

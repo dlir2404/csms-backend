@@ -2,10 +2,106 @@ import { Injectable, InternalServerErrorException, NotFoundException } from "@ne
 import { CreateOrderRequest, GetCreatedByStatisticRequest, GetListOrderRequest, GetProcessedByStatisticRequest, UpdateStatusRequest } from "./order.dto";
 import { Order, OrderProduct, Product, User } from "src/database/models";
 import { OrderStatus } from "src/shared/enums/order";
-import { Op, Sequelize, WhereOptions } from "sequelize";
+import { col, fn, Op, Sequelize, WhereOptions } from "sequelize";
+import { getBeginOfDay, getBeginOfYesterday } from "src/shared/helpers/date";
 
 @Injectable()
 export class OrderService {
+    async getOverview() {
+        const beginOfDay = getBeginOfDay();
+        const beginOfYesterday = getBeginOfYesterday();
+
+        const todayOverview = await Order.findOne({
+            attributes: [
+                [fn('COUNT', col('*')), 'totalOrders'],
+                [fn('SUM', col('totalPrice')), 'totalOrderValue'],
+                [fn('AVG', col('totalPrice')), 'avgOrderValue']
+            ],
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfDay,
+                },
+            },
+            raw: true,
+        }) as unknown as {
+            totalOrders: number;
+            totalOrderValue: number;
+            avgOrderValue: number;
+        };
+
+        const yesterdayOverview = await Order.findOne({
+            attributes: [
+                [fn('COUNT', col('*')), 'totalOrders'],
+                [fn('SUM', col('totalPrice')), 'totalOrderValue'],
+                [fn('AVG', col('totalPrice')), 'avgOrderValue']
+            ],
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfYesterday,
+                    [Op.lt]: beginOfDay
+                },
+            },
+            raw: true,
+        }) as unknown as {
+            totalOrders: number;
+            totalOrderValue: number;
+            avgOrderValue: number;
+        };
+
+        const itemToday = await OrderProduct.sum('quantity', {
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfDay,
+                },
+            },
+        })
+
+        const itemYesterday = await OrderProduct.sum('quantity', {
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfYesterday,
+                    [Op.lt]: beginOfDay
+                },
+            },
+        })
+
+        const orderStatus = await Order.findAll({
+            attributes: [
+                "status",
+                [fn('COUNT', col('*')), 'id'],
+            ],
+            group: ['status'],
+        }) as unknown as OrderCountResult[]
+
+        const statuses = Object.values(OrderStatus).map((status) => ({
+            status,
+            count: 0,
+        }));
+
+        orderStatus.forEach((item) => {
+            const index = statuses.findIndex((r) => r.status === item.status);
+            if (index > -1) {
+                statuses[index].count = Number(item?.count);
+            }
+        });
+
+        return {
+            today: {
+                totalOrders: todayOverview.totalOrders || 0,
+                totalOrderValue: todayOverview.totalOrderValue || 0,
+                avgOrderValue: todayOverview.avgOrderValue || 0,
+                totalItems: itemToday || 0
+            },
+            yesterday: {
+                totalOrders: yesterdayOverview.totalOrders || 0,
+                totalOrderValue: yesterdayOverview.totalOrderValue || 0,
+                avgOrderValue: yesterdayOverview.avgOrderValue || 0,
+                totalItems: itemYesterday || 0
+            },
+            statuses
+        }
+    }
+
     async createOrder(orderTakerId: number, body: CreateOrderRequest) {
         const newOrder = await Order.create(
             {
