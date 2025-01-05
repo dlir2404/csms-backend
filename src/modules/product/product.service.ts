@@ -8,7 +8,7 @@ export class ProductService {
     async getListProduct(params: GetListProductRequest) {
         const where: WhereOptions<Product> = {}
 
-        if (params.available) {
+        if (params.available !== undefined && params.available !== null) {
             where.available = params.available
         }
 
@@ -26,11 +26,21 @@ export class ProductService {
             };
         }
 
+        if (params.search) {
+            where.name = { [Op.like]: `%${params.search}%` }
+        }
+
+        const categoryWhere: WhereOptions<Category> = {}
+        if (params.category) {
+            categoryWhere.id = params.category
+        }
+
         const { count, rows } = await Product.findAndCountAll({
             include: [{
                 model: Category,
                 as: 'categories',
                 through: { attributes: [] },
+                where: categoryWhere
             }],
             where: where,
             limit: params.pageSize || 10,
@@ -56,17 +66,17 @@ export class ProductService {
 
         const product = await Product.create({ ...rest })
 
-        if (categoryIds && categoryIds.length > 0){
+        if (categoryIds && categoryIds.length > 0) {
             const categories = await Category.findAll({
                 where: {
                     id: categoryIds,
                 },
             });
-    
+
             if (categories.length === 0) {
                 throw new NotFoundException('No categories found');
             }
-    
+
             await product.$add('categories', categories);
         }
 
@@ -78,23 +88,23 @@ export class ProductService {
 
         if (!existProduct) throw new NotFoundException('Product not found')
 
-        const {categoryIds, ...rest} = body
+        const { categoryIds, ...rest } = body
 
         await existProduct.update({
             ...rest
         })
 
-        if (categoryIds && categoryIds.length > 0){
+        if (categoryIds && categoryIds.length > 0) {
             const categories = await Category.findAll({
                 where: {
                     id: categoryIds,
                 },
             });
-    
+
             if (categories.length === 0) {
                 throw new NotFoundException('No categories found');
             }
-    
+
             await existProduct.$add('categories', categories);
         }
 

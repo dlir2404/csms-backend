@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { EditUserRequest, GetListUsersRequest } from "./user.dto";
 import { User } from "src/database/models";
-import { Op, where, WhereOptions } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
 
 @Injectable()
 export class ManagerUserService {
@@ -26,6 +26,13 @@ export class ManagerUserService {
             };
         }
 
+        if (params.search) {
+            where[Op.or] = [
+                { fullName: { [Op.like]: `%${params.search}%` } },
+                { username: { [Op.like]: `%${params.search}%` } }
+            ];
+        }
+
         const { rows, count } = await User.findAndCountAll({
             where: where,
             limit: params.pageSize || 10,
@@ -40,7 +47,7 @@ export class ManagerUserService {
     }
 
     async updateUser(id: number, body: EditUserRequest) {
-        const user = await User.findOne({ where: {id: id}});
+        const user = await User.findOne({ where: { id: id } });
 
         if (!user) throw new NotFoundException('User not exists')
 
@@ -54,7 +61,7 @@ export class ManagerUserService {
     }
 
     async deleteUser(id: number) {
-        const user = await User.findOne({ where: {id: id}});
+        const user = await User.findOne({ where: { id: id } });
 
         if (!user) throw new NotFoundException('User not exists')
 

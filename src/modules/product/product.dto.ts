@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Expose, Type } from "class-transformer";
+import { Expose, Transform, Type } from "class-transformer";
 import { IsArray, IsBoolean, IsDefined, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { DateAndPaginationType } from "src/shared/types/base";
 
@@ -104,7 +104,23 @@ export class GetListProductRequest extends DateAndPaginationType {
     })
     @IsBoolean()
     @IsOptional()
+    @Transform(({ value }) => value === 'true')
     available: boolean
+
+    @ApiProperty({
+        required: false
+    })
+    @IsNumber()
+    @IsOptional()
+    @Transform(({ value }) => parseInt(value))
+    category: number
+
+    @ApiProperty({
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    search: string
 }
 
 @Expose()

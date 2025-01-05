@@ -86,6 +86,13 @@ export class GetListUsersRequest extends DateAndPaginationType {
     @IsString()
     @IsOptional()
     role: UserRole
+
+    @ApiProperty({
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    search?: string;
 }
 
 @Expose()
