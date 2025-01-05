@@ -68,9 +68,15 @@ export class OrderService {
         const orderStatus = await Order.findAll({
             attributes: [
                 "status",
-                [fn('COUNT', col('*')), 'id'],
+                [fn('COUNT', col('*')), 'count'],
             ],
             group: ['status'],
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfDay,
+                },
+            },
+            raw: true
         }) as unknown as OrderCountResult[]
 
         const statuses = Object.values(OrderStatus).map((status) => ({
@@ -85,20 +91,106 @@ export class OrderService {
             }
         });
 
+        const createdByRaw = await Order.findAll({
+            attributes: [
+                "createdById",
+                [fn('COUNT', col('*')), 'order'],
+                [fn('SUM', col('totalPrice')), 'totalValue']
+            ],
+            include: [{
+                model: User,
+                attributes: ['id', 'username', 'fullName'],
+                as: 'createdBy'
+            }],
+            group: ['createdById'],
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfDay,
+                },
+            },
+            raw: true
+        }) as unknown as OrderCreatedByResult[]
+
+        const createdBy = createdByRaw.map(record => ({
+            createdById: record.createdById,
+            count: record.order,
+            totalValue: +record.totalValue,
+            username: record['createdBy.username'],
+            fullName: record['createdBy.fullName'],
+        }));
+
+        const processByRaw = await Order.findAll({
+            attributes: [
+                "processById",
+                [fn('COUNT', col('*')), 'order'],
+                [fn('SUM', col('totalPrice')), 'totalValue']
+            ],
+            include: [{
+                model: User,
+                attributes: ['id', 'username', 'fullName'],
+                as: 'processBy'
+            }],
+            group: ['processById'],
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfDay,
+                },
+            },
+            raw: true
+        }) as unknown as OrderProcessByResult[]
+
+        const processBy = processByRaw
+            .filter(item => item.processById !== null)
+            .map(record => ({
+                processById: record.processById,
+                count: record.order,
+                totalValue: +record.totalValue,
+                username: record['processBy.username'],
+                fullName: record['processBy.fullName'],
+            }));
+
+
+        const productRatioRaw = await OrderProduct.findAll({
+            attributes: [
+                "productId",
+                [fn('COUNT', col('*')), 'count'],
+            ],
+            include: [{
+                model: Product,
+                attributes: ['id', 'name'],
+            }],
+            group: ['productId'],
+            where: {
+                createdAt: {
+                    [Op.gte]: beginOfDay,
+                },
+            },
+            raw: true
+        }) as unknown as ProductRatioResult[]
+
+        const productRatio = productRatioRaw.map(record => ({
+            id: record.productId,
+            count: record.count,
+            name: record['product.name'],
+        }));
+
         return {
             today: {
                 totalOrders: todayOverview.totalOrders || 0,
-                totalOrderValue: todayOverview.totalOrderValue || 0,
-                avgOrderValue: todayOverview.avgOrderValue || 0,
+                totalOrderValue: +todayOverview.totalOrderValue || 0,
+                avgOrderValue: +todayOverview.avgOrderValue || 0,
                 totalItems: itemToday || 0
             },
             yesterday: {
                 totalOrders: yesterdayOverview.totalOrders || 0,
-                totalOrderValue: yesterdayOverview.totalOrderValue || 0,
-                avgOrderValue: yesterdayOverview.avgOrderValue || 0,
+                totalOrderValue: +yesterdayOverview.totalOrderValue || 0,
+                avgOrderValue: +yesterdayOverview.avgOrderValue || 0,
                 totalItems: itemYesterday || 0
             },
-            statuses
+            statuses,
+            createdBy,
+            processBy,
+            productRatio
         }
     }
 
