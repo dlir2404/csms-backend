@@ -233,6 +233,14 @@ export class OrderService {
             }
         }
 
+        if (params.createdBy) {
+            where.createdById = params.createdBy
+        }
+
+        if (params.processBy) {
+            where.processById = params.processBy
+        }
+
         const page = params.page || 1;
         const pageSize = params.pageSize || 10;
 

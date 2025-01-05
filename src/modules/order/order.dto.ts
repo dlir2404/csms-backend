@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Exclude, Expose, Type } from "class-transformer";
+import { Exclude, Expose, Transform, Type } from "class-transformer";
 import { IsArray, IsDefined, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { OrderStatus } from "src/shared/enums/order";
 import { UserRole } from "src/shared/enums/user";
@@ -96,6 +96,22 @@ export class GetListOrderRequest extends DateAndPaginationType {
     @IsString()
     @IsOptional()
     status: OrderStatus
+
+    @ApiProperty({
+        required: false
+    })
+    @IsNumber()
+    @IsOptional()
+    @Transform(({ value }) => parseInt(value))
+    createdBy: number
+
+    @ApiProperty({
+        required: false
+    })
+    @IsNumber()
+    @IsOptional()
+    @Transform(({ value }) => parseInt(value))
+    processBy: number
 }
 
 @Expose()
