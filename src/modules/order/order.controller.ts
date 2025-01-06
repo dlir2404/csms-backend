@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 import { OrderService } from "./order.service";
-import { CreateOrderRequest, GetCreatedByStatisticRequest, GetDailyStatisticRequest, GetListOrderRequest, GetMonthlyStatisticRequest, GetProcessedByStatisticRequest, ListOrderResponse, OverviewResponse, UpdateStatusRequest } from "./order.dto";
+import { CreateOrderRequest, GetCreatedByStatisticRequest, GetDailyStatisticRequest, GetListOrderRequest, GetMonthlyStatisticRequest, GetOrderRequest, GetProcessedByStatisticRequest, ListOrderResponse, OrderResponse, OverviewResponse, UpdateStatusRequest } from "./order.dto";
 import { AuthRequired, CurrentUserId, ManagerAuth, OrderTakerAuth } from "src/shared/decorators/auth";
 import { UserRole } from "src/shared/enums/user";
 import { plainToInstance } from "class-transformer";
@@ -19,13 +19,6 @@ export class OrderController {
         return plainToInstance(BaseResponse, result)
     }
 
-    @Get('/all')
-    @AuthRequired([UserRole.MANAGER, UserRole.BARISTA, UserRole.ORDER_TAKER])
-    async getOrderList(@Query() query: GetListOrderRequest) {
-        const result = await this.orderService.getOrderList(query)
-        return plainToInstance(ListOrderResponse, result)
-    }
-
     @Get('/overview')
     // @ManagerAuth()
     @ApiResponse({
@@ -34,6 +27,20 @@ export class OrderController {
     async getOrderOverview() {
         const result = await this.orderService.getOverview()
         return plainToInstance(OverviewResponse, result)
+    }
+
+    @Get('/all')
+    @AuthRequired([UserRole.MANAGER, UserRole.BARISTA, UserRole.ORDER_TAKER])
+    async getOrderList(@Query() query: GetListOrderRequest) {
+        const result = await this.orderService.getOrderList(query)
+        return plainToInstance(ListOrderResponse, result)
+    }
+
+    @Get(':id')
+    @AuthRequired([UserRole.MANAGER, UserRole.BARISTA, UserRole.ORDER_TAKER])
+    async getOrder(@Param() request: GetOrderRequest) {
+        const result = await this.orderService.getOrder(request.id)
+        return plainToInstance(OrderResponse, result)
     }
 
     @Put('/status/:id')

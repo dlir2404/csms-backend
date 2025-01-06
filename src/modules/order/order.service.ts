@@ -218,6 +218,7 @@ export class OrderService {
     // order.service.ts
     async getOrderList(params: GetListOrderRequest) {
         const where: WhereOptions<Order> = {};
+        let order: any
 
         if (params.status) {
             where.status = params.status;
@@ -239,6 +240,10 @@ export class OrderService {
 
         if (params.processBy) {
             where.processById = params.processBy
+        }
+
+        if (params.orderBy && params.order){
+            order = [[params.orderBy, params.order]]
         }
 
         const page = params.page || 1;
@@ -265,6 +270,7 @@ export class OrderService {
                     attributes: ['id', 'username', 'fullName']
                 }
             ],
+            order,
             where,
             limit: pageSize,
             offset: (page - 1) * pageSize,
@@ -305,6 +311,64 @@ export class OrderService {
             count,
             rows: transformedRows,
         };
+    }
+
+    async getOrder(orderId: number) {
+        const order = await Order.findOne({
+            include: [
+                {
+                    model: Product,
+                    as: 'products',
+                    through: {
+                        attributes: ['quantity'],
+                    },
+                    attributes: ['id', 'name', 'price', 'thumbnail']
+                },
+                {
+                    model: User,
+                    as: 'createdBy',
+                    attributes: ['id', 'username', 'fullName']
+                },
+                {
+                    model: User,
+                    as: 'processBy',
+                    attributes: ['id', 'username', 'fullName']
+                }
+            ],
+            where: {id: orderId},
+        });
+
+        const transformedRows = [order].map(order => {
+            const plainOrder = order.get({ plain: true });
+
+            return {
+                id: plainOrder.id,
+                totalPrice: plainOrder.totalPrice,
+                note: plainOrder.note,
+                status: plainOrder.status,
+                createdAt: plainOrder.createdAt,
+                updatedAt: plainOrder.updatedAt,
+                products: plainOrder.products.map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    price: item.price,
+                    thumbnail: item.thumbnail,
+                    quantity: item.OrderProduct.quantity
+                })),
+                createdBy: plainOrder.createdBy ? {
+                    id: plainOrder.createdBy.id,
+                    username: plainOrder.createdBy.username,
+                    fullName: plainOrder.createdBy.fullName
+                } : null,
+                processBy: plainOrder.processBy ? {
+                    id: plainOrder.processBy.id,
+                    username: plainOrder.processBy.username,
+                    fullName: plainOrder.processBy.fullName
+                } : null
+            };
+        });
+
+        return transformedRows[0];
     }
 
     async updateStatus(userId: number, orderId: number, body: UpdateStatusRequest) {

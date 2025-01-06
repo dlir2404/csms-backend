@@ -112,6 +112,20 @@ export class GetListOrderRequest extends DateAndPaginationType {
     @IsOptional()
     @Transform(({ value }) => parseInt(value))
     processBy: number
+
+    @ApiProperty({
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    orderBy: string
+
+    @ApiProperty({
+        required: false
+    })
+    @IsString()
+    @IsOptional()
+    order: string
 }
 
 @Expose()
@@ -241,4 +255,14 @@ export class OverviewResponse {
     })
     @Type(() => OverViewStatus)
     statuses: OverViewStatus[]
+}
+
+export class GetOrderRequest {
+    @ApiProperty({
+        required: true
+    })
+    @IsNotEmpty()
+    @IsNumber()
+    @Transform(({value}) => parseInt(value))
+    id: number
 }
