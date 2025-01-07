@@ -667,4 +667,85 @@ export class OrderService {
             throw new InternalServerErrorException('Error when retrieving user order statistics');
         }
     }
+
+    async getStatisticByProduct(month: number, year: number) {
+        try {
+            // Create date range for the specified month
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0);
+    
+            const result = await Order.findAll({
+                attributes: [
+                    [fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'day'],
+                    [fn('COUNT', col('Order.id')), 'count'],
+                ],
+                include: [
+                    {
+                        model: Product,
+                        as: 'products',
+                        through: {
+                            attributes: [],
+                        },
+                        attributes: ['id', 'name']
+                    },
+                ],
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                },
+                group: [
+                    'products.id',
+                    fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'day'
+                ],
+                order: [
+                    // ['products.id', 'ASC'],
+                    [fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'ASC']
+                ],
+                raw: true,
+                nest: true
+            });
+
+            const productMap = new Map();
+    
+            const daysInMonth = endDate.getDate();
+            const allDays = Array.from({ length: daysInMonth }, (_, i) => {
+                const day = (i + 1).toString().padStart(2, '0');
+                return `${year}-${month.toString().padStart(2, '0')}-${day}`;
+            });
+    
+            result.forEach((row: any) => {
+                if (!row.products.id)  return;
+                if (!productMap.has(row.products.id)) {
+                    productMap.set(row.products.id, {
+                        id: row.products.id,
+                        name: row.products.name,
+                        data: allDays.map(day => ({
+                            day,
+                            count: 0
+                        }))
+                    });
+                }
+            });
+    
+            // Fill in the actual counts
+            result.forEach((row: any) => {
+                if (!row.products.id)  return;
+                const userData = productMap.get(row.products.id);
+                const dayIndex = userData.data.findIndex(d => d.day === row.day);
+                
+                if (dayIndex !== -1) {
+                    userData.data[dayIndex].count = parseInt(row.count, 10);
+                }
+            });
+    
+            // Convert Map to Array for final result
+            const finalResult = Array.from(productMap.values());
+    
+            return finalResult;
+        } catch (error) {
+            console.error('Error getting user order statistics:', error);
+            throw new InternalServerErrorException('Error when retrieving user order statistics');
+        }
+    }
 }

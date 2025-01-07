@@ -69,4 +69,9 @@ export class OrderController {
     async getProcessedByStatistic(@Query() query: GetDailyStatisticRequest) {
         return await this.orderService.getProcessedByStatistic(query.month, query.year)
     }
+
+    @Get('/statistic/by-product')
+    async getStatisticByProduct(@Query() query: GetDailyStatisticRequest) {
+        return await this.orderService.getStatisticByProduct(query.month, query.year)
+    }
 }
