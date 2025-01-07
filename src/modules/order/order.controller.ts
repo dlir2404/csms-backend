@@ -16,7 +16,7 @@ export class OrderController {
     @OrderTakerAuth()
     async createOrder(@Body() body: CreateOrderRequest, @CurrentUserId() userId: number) {
         const result = await this.orderService.createOrder(userId, body)
-        return plainToInstance(BaseResponse, result)
+        return plainToInstance(OrderResponse, result)
     }
 
     @Get('/overview')

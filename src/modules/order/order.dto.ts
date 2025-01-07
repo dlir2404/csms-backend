@@ -20,6 +20,13 @@ export class OrderProduct {
     @IsNumber()
     @IsDefined()
     quantity: number;
+
+    @ApiProperty({
+        required: false
+    })
+    @IsOptional()
+    @IsString()
+    note: string;
 }
 
 export class CreateOrderRequest {

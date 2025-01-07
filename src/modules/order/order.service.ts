@@ -208,11 +208,12 @@ export class OrderService {
             orderId: newOrder.id,
             productId: product.productId,
             quantity: product.quantity,
+            note: product.note
         }));
 
         await OrderProduct.bulkCreate(orderProducts);
 
-        return { result: true };
+        return newOrder.dataValues;
     }
 
     // order.service.ts
@@ -320,7 +321,7 @@ export class OrderService {
                     model: Product,
                     as: 'products',
                     through: {
-                        attributes: ['quantity'],
+                        attributes: ['quantity', 'note'],
                     },
                     attributes: ['id', 'name', 'price', 'thumbnail']
                 },
@@ -353,7 +354,8 @@ export class OrderService {
                     name: item.name,
                     price: item.price,
                     thumbnail: item.thumbnail,
-                    quantity: item.OrderProduct.quantity
+                    quantity: item.OrderProduct.quantity,
+                    note: item.OrderProduct.note
                 })),
                 createdBy: plainOrder.createdBy ? {
                     id: plainOrder.createdBy.id,

@@ -20,4 +20,7 @@ export class OrderProduct extends Model {
 
     @Column
     quantity: number;
+
+    @Column
+    note: string;
 }
