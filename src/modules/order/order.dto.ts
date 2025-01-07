@@ -5,6 +5,7 @@ import { OrderStatus } from "src/shared/enums/order";
 import { UserRole } from "src/shared/enums/user";
 import { DateAndPaginationType, DateType } from "src/shared/types/base";
 import { UserResponse } from "../user/user.dto";
+import { PaymentWithoutOrderResponse } from "../payment/payment.dto";
 
 export class OrderProduct {
     @ApiProperty({
@@ -93,6 +94,10 @@ export class OrderResponse {
 
     @ApiProperty()
     updatedAt: string
+
+    @ApiProperty()
+    @Type(() => PaymentWithoutOrderResponse)
+    payment: PaymentWithoutOrderResponse
 }
 
 export class GetListOrderRequest extends DateAndPaginationType {

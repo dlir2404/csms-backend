@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { CreateOrderRequest, GetCreatedByStatisticRequest, GetListOrderRequest, GetProcessedByStatisticRequest, UpdateStatusRequest } from "./order.dto";
-import { Order, OrderProduct, Product, User } from "src/database/models";
+import { Order, OrderProduct, Payment, Product, User } from "src/database/models";
 import { OrderStatus } from "src/shared/enums/order";
 import { col, fn, Op, Sequelize, WhereOptions } from "sequelize";
 import { getBeginOfDay, getBeginOfYesterday } from "src/shared/helpers/date";
@@ -269,6 +269,11 @@ export class OrderService {
                     model: User,
                     as: 'processBy',
                     attributes: ['id', 'username', 'fullName']
+                },
+                {
+                    model: Payment,
+                    as: 'payment',
+                    attributes: ['id', 'amount', 'paymentMethod', 'status', 'createdAt']
                 }
             ],
             order,
@@ -304,6 +309,12 @@ export class OrderService {
                     id: plainOrder.processBy.id,
                     username: plainOrder.processBy.username,
                     fullName: plainOrder.processBy.fullName
+                } : null,
+                payment: plainOrder.payment ? {
+                    id: plainOrder.payment.id,
+                    amount: plainOrder.payment.amount,
+                    paymentMethod: plainOrder.payment.paymentMethod,
+                    status: plainOrder.payment.status
                 } : null
             };
         });
@@ -334,6 +345,11 @@ export class OrderService {
                     model: User,
                     as: 'processBy',
                     attributes: ['id', 'username', 'fullName']
+                },
+                {
+                    model: Payment,
+                    as: 'payment',
+                    attributes: ['id', 'amount', 'paymentMethod', 'status', 'createdAt']
                 }
             ],
             where: {id: orderId},
@@ -366,6 +382,12 @@ export class OrderService {
                     id: plainOrder.processBy.id,
                     username: plainOrder.processBy.username,
                     fullName: plainOrder.processBy.fullName
+                } : null,
+                payment: plainOrder.payment ? {
+                    id: plainOrder.payment.id,
+                    amount: plainOrder.payment.amount,
+                    paymentMethod: plainOrder.payment.paymentMethod,
+                    status: plainOrder.payment.status
                 } : null
             };
         });

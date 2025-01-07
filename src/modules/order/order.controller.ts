@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 import { OrderService } from "./order.service";
 import { CreateOrderRequest, GetCreatedByStatisticRequest, GetDailyStatisticRequest, GetListOrderRequest, GetMonthlyStatisticRequest, GetOrderRequest, GetProcessedByStatisticRequest, ListOrderResponse, OrderResponse, OverviewResponse, UpdateStatusRequest } from "./order.dto";
-import { AuthRequired, CurrentUserId, ManagerAuth, OrderTakerAuth } from "src/shared/decorators/auth";
+import { AuthRequired, CurrentUserId, ManagerAuth, OrderTakerAuth, User } from "src/shared/decorators/auth";
 import { UserRole } from "src/shared/enums/user";
 import { plainToInstance } from "class-transformer";
 import { BaseResponse } from "src/shared/types/base";
@@ -44,7 +44,7 @@ export class OrderController {
     }
 
     @Put('/status/:id')
-    @AuthRequired([UserRole.BARISTA])
+    @AuthRequired([UserRole.BARISTA, UserRole.ORDER_TAKER])
     async updateOrderStatus(@CurrentUserId() userId: number, @Body() body: UpdateStatusRequest, @Param('id') orderId: number) {
         const result = await this.orderService.updateStatus(userId, orderId, body)
         return plainToInstance(BaseResponse, result)
