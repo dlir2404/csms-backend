@@ -74,4 +74,9 @@ export class OrderController {
     async getStatisticByProduct(@Query() query: GetDailyStatisticRequest) {
         return await this.orderService.getStatisticByProduct(query.month, query.year)
     }
+
+    @Get('/statistic/quantity/by-product')
+    async getStatisticQuantityByProduct(@Query() query: GetDailyStatisticRequest) {
+        return await this.orderService.getStatisticQuantityByProduct(query.month, query.year)
+    }
 }
