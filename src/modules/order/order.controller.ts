@@ -61,12 +61,12 @@ export class OrderController {
     }
 
     @Get('/statistic/created-by')
-    async getCreatedByStatistic(@Query() query: GetCreatedByStatisticRequest) {
-        return await this.orderService.getCreatedByStatistic(query)
+    async getCreatedByStatistic(@Query() query: GetDailyStatisticRequest) {
+        return await this.orderService.getCreatedByStatistic(query.month, query.year)
     }
 
     @Get('/statistic/processed-by')
-    async getProcessedByStatistic(@Query() query: GetProcessedByStatisticRequest) {
-        return await this.orderService.getProcessedByStatistic(query)
+    async getProcessedByStatistic(@Query() query: GetDailyStatisticRequest) {
+        return await this.orderService.getProcessedByStatistic(query.month, query.year)
     }
 }

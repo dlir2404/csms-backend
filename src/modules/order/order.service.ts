@@ -243,7 +243,7 @@ export class OrderService {
             where.processById = params.processBy
         }
 
-        if (params.orderBy && params.order){
+        if (params.orderBy && params.order) {
             order = [[params.orderBy, params.order]]
         }
 
@@ -352,10 +352,10 @@ export class OrderService {
                 {
                     model: Payment,
                     as: 'payment',
-                    attributes: ['id', 'subtotal', 'vat', 'discount', 'total' , 'paymentMethod', 'status', 'createdAt']
+                    attributes: ['id', 'subtotal', 'vat', 'discount', 'total', 'paymentMethod', 'status', 'createdAt']
                 }
             ],
-            where: {id: orderId},
+            where: { id: orderId },
         });
 
         if (!order) throw new NotFoundException('Order not found')
@@ -518,65 +518,153 @@ export class OrderService {
         }
     }
 
-    async getCreatedByStatistic(params: GetCreatedByStatisticRequest) {
-        const where: WhereOptions<Order> = {}
+    async getCreatedByStatistic(month: number, year: number) {
+        try {
+            // Create date range for the specified month
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0);
+    
+            const result = await Order.findAll({
+                attributes: [
+                    [fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'day'],
+                    [fn('COUNT', col('Order.id')), 'count'],
+                ],
+                include: [{
+                    model: User,
+                    as: 'createdBy',
+                    attributes: ['id', 'username', 'fullName'],
+                }],
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                },
+                group: [
+                    'createdBy.id',
+                    fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'day'
+                ],
+                order: [
+                    // ['createdBy.id', 'ASC'],
+                    [fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'ASC']
+                ],
+                raw: true,
+                nest: true
+            });
 
-        if (params.from || params.to) {
-            where.createdAt = {};
-            if (params.from) {
-                where.createdAt[Op.gte] = new Date(params.from);
-            }
-            if (params.to) {
-                where.createdAt[Op.lte] = new Date(params.to);
-            }
+            const userMap = new Map();
+    
+            const daysInMonth = endDate.getDate();
+            const allDays = Array.from({ length: daysInMonth }, (_, i) => {
+                const day = (i + 1).toString().padStart(2, '0');
+                return `${year}-${month.toString().padStart(2, '0')}-${day}`;
+            });
+    
+            result.forEach((row: any) => {
+                if (!userMap.has(row.createdBy.id)) {
+                    userMap.set(row.createdBy.id, {
+                        id: row.createdBy.id,
+                        name: row.createdBy.fullName || row.createdBy.username,
+                        data: allDays.map(day => ({
+                            day,
+                            count: 0
+                        }))
+                    });
+                }
+            });
+    
+            // Fill in the actual counts
+            result.forEach((row: any) => {
+                const userData = userMap.get(row.createdBy.id);
+                const dayIndex = userData.data.findIndex(d => d.day === row.day);
+                
+                if (dayIndex !== -1) {
+                    userData.data[dayIndex].count = parseInt(row.count, 10);
+                }
+            });
+    
+            // Convert Map to Array for final result
+            const finalResult = Array.from(userMap.values());
+    
+            return finalResult;
+        } catch (error) {
+            console.error('Error getting user order statistics:', error);
+            throw new InternalServerErrorException('Error when retrieving user order statistics');
         }
-
-        const result = await Order.findAll({
-            attributes: [
-                [Sequelize.literal('COUNT(`Order`.`id`)'), 'count'],
-            ],
-            include: [{
-                model: User,
-                attributes: ['id', 'username', 'fullName'],
-                as: 'createdBy'
-            }],
-            where: where,
-            group: 'createdById',
-            raw: true,
-            nest: true,
-        })
-
-        return result;
     }
 
-    async getProcessedByStatistic(params: GetProcessedByStatisticRequest) {
-        const where: WhereOptions<Order> = {}
+    async getProcessedByStatistic(month: number, year: number) {
+        try {
+            // Create date range for the specified month
+            const startDate = new Date(year, month - 1, 1);
+            const endDate = new Date(year, month, 0);
+    
+            const result = await Order.findAll({
+                attributes: [
+                    [fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'day'],
+                    [fn('COUNT', col('Order.id')), 'count'],
+                ],
+                include: [{
+                    model: User,
+                    as: 'processBy',
+                    attributes: ['id', 'username', 'fullName'],
+                }],
+                where: {
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    }
+                },
+                group: [
+                    'processBy.id',
+                    fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'day'
+                ],
+                order: [
+                    // ['processBy.id', 'ASC'],
+                    [fn('DATE_FORMAT', col('Order.createdAt'), '%Y-%m-%d'), 'ASC']
+                ],
+                raw: true,
+                nest: true
+            });
 
-        if (params.from || params.to) {
-            where.createdAt = {};
-            if (params.from) {
-                where.createdAt[Op.gte] = new Date(params.from);
-            }
-            if (params.to) {
-                where.createdAt[Op.lte] = new Date(params.to);
-            }
+            const userMap = new Map();
+    
+            const daysInMonth = endDate.getDate();
+            const allDays = Array.from({ length: daysInMonth }, (_, i) => {
+                const day = (i + 1).toString().padStart(2, '0');
+                return `${year}-${month.toString().padStart(2, '0')}-${day}`;
+            });
+    
+            result.forEach((row: any) => {
+                if (!row.processBy.id)  return;
+                if (!userMap.has(row.processBy.id)) {
+                    userMap.set(row.processBy.id, {
+                        id: row.processBy.id,
+                        name: row.processBy.fullName || row.processBy.username,
+                        data: allDays.map(day => ({
+                            day,
+                            count: 0
+                        }))
+                    });
+                }
+            });
+    
+            // Fill in the actual counts
+            result.forEach((row: any) => {
+                if (!row.processBy.id)  return;
+                const userData = userMap.get(row.processBy.id);
+                const dayIndex = userData.data.findIndex(d => d.day === row.day);
+                
+                if (dayIndex !== -1) {
+                    userData.data[dayIndex].count = parseInt(row.count, 10);
+                }
+            });
+    
+            // Convert Map to Array for final result
+            const finalResult = Array.from(userMap.values());
+    
+            return finalResult;
+        } catch (error) {
+            console.error('Error getting user order statistics:', error);
+            throw new InternalServerErrorException('Error when retrieving user order statistics');
         }
-
-        const result = await Order.findAll({
-            attributes: [
-                [Sequelize.literal('COUNT(`Order`.`id`)'), 'count'],
-            ],
-            include: [{
-                model: User,
-                attributes: ['id', 'username', 'fullName'],
-                as: 'processBy'
-            }],
-            where: where,
-            group: 'processById',
-            raw: true,
-            nest: true,
-        })
-
-        return result;
     }
 }
