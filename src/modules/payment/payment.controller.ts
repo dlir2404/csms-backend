@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { PaymentService } from "./payment.service";
-import { PayRequest, PayResponse, VNPayIpnResultInterBank } from "./payment.dto";
+import { GetListPaymentRequest, PayRequest, PayResponse, VNPayIpnResultInterBank } from "./payment.dto";
 import { plainToInstance } from "class-transformer";
 
 @Controller('/api/payment')
@@ -19,6 +19,12 @@ export class PaymentController {
     @Get('/ipn/vn-pay')
     async updatePaymentResult(@Query() ipnResult: any) {
         const result = this.paymentService.updatePaymentResult(ipnResult as VNPayIpnResultInterBank)
+        return result
+    }
+
+    @Get('/all')
+    async getListPayment(@Query() query: GetListPaymentRequest) {
+        const result = this.paymentService.getListPayment(query)
         return result
     }
 }
