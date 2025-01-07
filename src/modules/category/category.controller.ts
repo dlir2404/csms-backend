@@ -1,10 +1,11 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query } from "@nestjs/common";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CategoryService } from "./category.service";
-import { ManagerAuth } from "src/shared/decorators/auth";
+import { AuthRequired, ManagerAuth } from "src/shared/decorators/auth";
 import { CategoryResponse, CreateCategoryRequest, EditCategoryRequest, ListCategoryResponse } from "./category.dto";
 import { plainToInstance } from "class-transformer";
 import { BaseResponse } from "src/shared/types/base";
+import { UserRole } from "src/shared/enums/user";
 
 @Controller('category')
 @ApiTags('Category')
@@ -15,7 +16,7 @@ export class CategoryController {
     @ApiResponse({
         type: ListCategoryResponse
     })
-    @ManagerAuth()
+    @AuthRequired([UserRole.MANAGER, UserRole.BARISTA, UserRole.ORDER_TAKER])
     async getListCategory() {
         const results = await this.categoryService.getListCategory();
         return plainToInstance(ListCategoryResponse, results);

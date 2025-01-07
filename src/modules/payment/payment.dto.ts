@@ -143,3 +143,48 @@ export class GetListPaymentRequest extends DateAndPaginationType {
     @IsOptional()
     order: string
 }
+
+export class OverviewReport {
+    @ApiProperty()
+    totalValue: number;
+
+    @ApiProperty()
+    avgValue: number;
+
+    @ApiProperty()
+    totalVat: number;
+
+    @ApiProperty()
+    totalDiscount: number;
+}
+
+export class OverViewStatus {
+    @ApiProperty()
+    status: string;
+
+    @ApiProperty()
+    count: number;
+}
+
+export class OverviewResponse {
+    @ApiProperty({
+        type: OverviewReport,
+        isArray: true
+    })
+    @Type(() => OverviewReport)
+    today: OverviewReport;
+
+    @ApiProperty({
+        type: OverviewReport,
+        isArray: true
+    })
+    @Type(() => OverviewReport)
+    yesterday: OverviewReport;
+
+    @ApiProperty({
+        type: OverViewStatus,
+        isArray: true
+    })
+    @Type(() => OverViewStatus)
+    statuses: OverViewStatus[]
+}
