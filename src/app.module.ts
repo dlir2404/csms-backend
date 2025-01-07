@@ -27,6 +27,7 @@ import { PaymentModule } from './modules/payment/payment.module';
         autoLoadModels: true,
         synchronize: true,
         logging: console.log,
+        timezone: '+07:00'
       })
     }),
     AuthModule, 
