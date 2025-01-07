@@ -358,6 +358,8 @@ export class OrderService {
             where: {id: orderId},
         });
 
+        if (!order) throw new NotFoundException('Order not found')
+
         const transformedRows = [order].map(order => {
             const plainOrder = order.get({ plain: true });
 

@@ -1,10 +1,10 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { PaymentService } from "./payment.service";
-import { PayRequest, PayResponse } from "./payment.dto";
+import { PayRequest, PayResponse, VNPayIpnResultInterBank } from "./payment.dto";
 import { plainToInstance } from "class-transformer";
 
-@Controller('payment')
+@Controller('/api/payment')
 @ApiTags('Payment')
 export class PaymentController {
     constructor(private readonly paymentService: PaymentService) {}
@@ -14,5 +14,11 @@ export class PaymentController {
         const result = this.paymentService.pay(body)
 
         return plainToInstance(PayResponse, result)
+    }
+
+    @Get('/ipn/vn-pay')
+    async updatePaymentResult(@Query() ipnResult: any) {
+        const result = this.paymentService.updatePaymentResult(ipnResult as VNPayIpnResultInterBank)
+        return result
     }
 }

@@ -46,6 +46,24 @@ services:
   #     - "3001:3000"
   #   depends_on:
   #     - db
+  ngrok:
+    image: ngrok/ngrok:latest
+    environment:
+      - NGROK_AUTHTOKEN=2SpIbAGutsPvKgOpwbYfBJmb5DC_55Db82AnQyxuqJ33GiRAu
+    command:
+      - "http"
+      - "--domain=workable-teaching-monster.ngrok-free.app"
+      - "host.docker.internal:3002"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - ngrok-network
 
 volumes:
   db_data:
+
+networks:
+  app-network:
+    driver: bridge
+  ngrok-network:
+    driver: bridge
