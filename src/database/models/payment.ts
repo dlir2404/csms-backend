@@ -8,7 +8,25 @@ export class Payment extends Model {
         type: DataType.DECIMAL(10, 2),
         allowNull: false
     })
-    amount: number;
+    subtotal: number;
+
+    @Column({
+        type: DataType.DECIMAL(10, 2),
+        allowNull: false
+    })
+    vat: number;
+
+    @Column({
+        type: DataType.DECIMAL(10, 2),
+        allowNull: false
+    })
+    discount: number;
+
+    @Column({
+        type: DataType.DECIMAL(10, 2),
+        allowNull: false
+    })
+    total: number;
 
     @Column({
         type: DataType.ENUM(...Object.values(PaymentMethod)),

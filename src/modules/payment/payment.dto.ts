@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsDefined, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { IsDefined, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { PaymentMethod } from "src/shared/enums/payment";
 import { OrderResponse } from "../order/order.dto";
 import { Type } from "class-transformer";
@@ -13,7 +13,14 @@ export class PayRequest {
     @ApiProperty()
     @IsNumber()
     @IsDefined()
-    amount: number;
+    total: number;
+
+    @ApiProperty({
+        required: false
+    })
+    @IsNumber()
+    @IsOptional()
+    discount: number;
 
     @ApiProperty()
     @IsString()

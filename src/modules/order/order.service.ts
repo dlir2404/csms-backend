@@ -273,7 +273,7 @@ export class OrderService {
                 {
                     model: Payment,
                     as: 'payment',
-                    attributes: ['id', 'amount', 'paymentMethod', 'status', 'createdAt']
+                    attributes: ['id', 'subtotal', 'vat', 'discount', 'total', 'paymentMethod', 'status', 'createdAt']
                 }
             ],
             order,
@@ -312,7 +312,10 @@ export class OrderService {
                 } : null,
                 payment: plainOrder.payment ? {
                     id: plainOrder.payment.id,
-                    amount: plainOrder.payment.amount,
+                    subtotal: plainOrder.payment.subtotal,
+                    vat: plainOrder.payment.vat,
+                    discount: plainOrder.payment.discount,
+                    total: plainOrder.payment.total,
                     paymentMethod: plainOrder.payment.paymentMethod,
                     status: plainOrder.payment.status
                 } : null
@@ -349,7 +352,7 @@ export class OrderService {
                 {
                     model: Payment,
                     as: 'payment',
-                    attributes: ['id', 'amount', 'paymentMethod', 'status', 'createdAt']
+                    attributes: ['id', 'subtotal', 'vat', 'discount', 'total' , 'paymentMethod', 'status', 'createdAt']
                 }
             ],
             where: {id: orderId},
@@ -385,7 +388,10 @@ export class OrderService {
                 } : null,
                 payment: plainOrder.payment ? {
                     id: plainOrder.payment.id,
-                    amount: plainOrder.payment.amount,
+                    subtotal: plainOrder.payment.subtotal,
+                    vat: plainOrder.payment.vat,
+                    discount: plainOrder.payment.discount,
+                    total: plainOrder.payment.total,
                     paymentMethod: plainOrder.payment.paymentMethod,
                     status: plainOrder.payment.status
                 } : null
