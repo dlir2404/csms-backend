@@ -18,4 +18,7 @@ export class User extends Model {
         type: DataType.ENUM(...Object.values(UserRole)),
     })
     role: UserRole
+
+    @Column
+    isLock: boolean
 }

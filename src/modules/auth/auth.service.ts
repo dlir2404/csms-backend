@@ -30,12 +30,16 @@ export class AuthService {
             throw new ForbiddenException('Username or password not match')
         }
 
+        if (!user.isLock) {
+            throw new ForbiddenException('This account has been locked')
+        }
+
         const payload = { sub: user.id, role: user.role };
 
         return { token: await this.jwtService.signAsync(payload) }
     }
 
     async getMe(userId: number) {
-        return User.findOne({ where: { id: userId }, raw: true})
+        return await User.findOne({ where: { id: userId }, raw: true})
     }
 }

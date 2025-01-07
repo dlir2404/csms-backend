@@ -67,4 +67,16 @@ export class ManagerUserService {
 
         return { result: true }
     }
+
+    async toggleLock(id: number) {
+        const user = await User.findOne({ where: { id: id } });
+
+        if (!user) throw new NotFoundException('User not exists')
+
+        user.isLock = !user.isLock
+
+        await user.save()
+
+        return { result: true }
+    }
 }

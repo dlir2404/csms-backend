@@ -45,6 +45,16 @@ export class AdminUserController {
         return plainToInstance(BaseResponse, results);
     }
 
+    @Put('toggle-lock/:id')
+    @ApiResponse({
+        type: BaseResponse
+    })
+    @ManagerAuth()
+    async toggleLock(@Param('id') id: number) {
+        const results = await this.managerUserService.toggleLock(id);
+        return plainToInstance(BaseResponse, results);
+    }
+
     @Delete(':id')
     @ApiResponse({
         type: BaseResponse

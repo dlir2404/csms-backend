@@ -21,6 +21,6 @@ import { ManagerAuthService } from './manager.auth.service';
     }),
   ],
   controllers: [AuthController, ManagerAuthController],
-  providers: [AuthService, ManagerAuthService]
+  providers: [AuthService, ManagerAuthService],
 })
 export class AuthModule {}
